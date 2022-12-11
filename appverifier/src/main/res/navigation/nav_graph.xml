@@ -30,6 +30,9 @@
         <action
             android:id="@+id/action_RequestOptions_to_ShowQr"
             app:destination="@id/ShowQr" />
+        <action
+            android:id="@+id/action_RequestOptions_to_SelectTransport"
+            app:destination="@id/SelectTransport" />
     </fragment>
     <fragment
         android:id="@+id/settingsFragment"

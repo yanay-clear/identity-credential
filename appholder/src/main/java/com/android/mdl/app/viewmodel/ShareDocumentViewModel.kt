@@ -44,4 +44,8 @@ class ShareDocumentViewModel(val app: Application) : AndroidViewModel(app) {
     fun triggerQrEngagement() {
         transferManager.startQrEngagement()
     }
+
+    fun triggerBleEngagement() {
+        transferManager.startBleEngagement()
+    }
 }

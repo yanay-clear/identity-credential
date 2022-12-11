@@ -1,19 +1,28 @@
 package com.android.mdl.appreader.fragment
 
+import android.bluetooth.BluetoothManager
 import android.os.Bundle
+import android.util.Log
 import android.view.*
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.android.mdl.appreader.R
 import com.android.mdl.appreader.databinding.FragmentRequestOptionsBinding
 import com.android.mdl.appreader.document.*
+import com.android.mdl.appreader.fragment.DeviceEngagementFragment.Companion
+import com.android.mdl.appreader.transfer.BleEngagementReader
 import com.android.mdl.appreader.transfer.TransferManager
+import com.android.mdl.appreader.util.TransferStatus
 
 /**
  * A simple [Fragment] subclass as the default destination in the navigation.
  */
 class RequestOptionsFragment : Fragment() {
+    companion object {
+        private const val TAG = "RequestOptionsFragment"
+    }
 
     private val args: RequestOptionsFragmentArgs by navArgs()
     private var _binding: FragmentRequestOptionsBinding? = null
@@ -36,6 +45,7 @@ class RequestOptionsFragment : Fragment() {
         setHasOptionsMenu(true)
 
         _binding = FragmentRequestOptionsBinding.inflate(inflater, container, false)
+
         return binding.root
     }
 
@@ -112,7 +122,6 @@ class RequestOptionsFragment : Fragment() {
         }
 
         binding.btNext.setOnClickListener {
-
             if (binding.cbRequestMdl.isChecked && binding.cbRequestMdlCustom.isChecked) {
                 findNavController().navigate(
                     RequestOptionsFragmentDirections.actionRequestOptionsToRequestCustom(

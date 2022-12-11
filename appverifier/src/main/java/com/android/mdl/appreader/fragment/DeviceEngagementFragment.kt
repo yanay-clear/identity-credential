@@ -1,6 +1,7 @@
 package com.android.mdl.appreader.fragment
 
 import android.Manifest
+import android.bluetooth.BluetoothManager
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -19,6 +20,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.android.mdl.appreader.R
 import com.android.mdl.appreader.databinding.FragmentDeviceEngagementBinding
+import com.android.mdl.appreader.transfer.BleEngagementReader
 import com.android.mdl.appreader.transfer.TransferManager
 import com.android.mdl.appreader.util.TransferStatus
 import com.budiyev.android.codescanner.CodeScanner
@@ -58,6 +60,7 @@ class DeviceEngagementFragment : Fragment() {
 
     private var mCodeScanner: CodeScanner? = null
     private lateinit var transferManager: TransferManager
+    private lateinit var bleEngagementReader: BleEngagementReader
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -67,6 +70,10 @@ class DeviceEngagementFragment : Fragment() {
         _binding = FragmentDeviceEngagementBinding.inflate(inflater, container, false)
         transferManager = TransferManager.getInstance(requireContext())
         transferManager.initVerificationHelper()
+
+        val bluetoothManager = requireContext().getSystemService(BluetoothManager::class.java)
+        bleEngagementReader = BleEngagementReader(requireContext(), bluetoothManager, transferManager, {}, {}, {}, {})
+        bleEngagementReader.connect()
         return binding.root
 
     }

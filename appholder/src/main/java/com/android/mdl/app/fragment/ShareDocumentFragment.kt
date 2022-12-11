@@ -75,6 +75,7 @@ class ShareDocumentFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         viewModel.triggerQrEngagement()
+        viewModel.triggerBleEngagement()
     }
 
     private val onBackCallback = object : OnBackPressedCallback(true) {
