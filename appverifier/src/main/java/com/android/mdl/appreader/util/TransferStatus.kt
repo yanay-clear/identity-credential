@@ -5,7 +5,9 @@ enum class TransferStatus {
     ENGAGED,
     MOVE_INTO_NFC_FIELD,
     CONNECTED,
+    CONNECTING,
     RESPONSE,
     DISCONNECTED,
+    REQUEST,
     ERROR,
 }

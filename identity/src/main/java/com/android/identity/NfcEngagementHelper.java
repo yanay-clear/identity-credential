@@ -120,6 +120,7 @@ public class NfcEngagementHelper {
 
     // Used by both static and negotiated handover... safe to be called multiple times.
     private void setupTransports(@NonNull List<ConnectionMethod> connectionMethods) {
+        Logger.d(TAG, "setupTransports");
         if (mTransportsAreSettingUp) {
             return;
         }

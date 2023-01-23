@@ -10,6 +10,7 @@ import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
+import com.android.mdl.appreader.util.log
 import com.google.android.material.elevation.SurfaceColors
 
 class MainActivity : AppCompatActivity() {
@@ -24,6 +25,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        log("OnCreate Main Activity")
         val color = SurfaceColors.SURFACE_2.getColor(this)
         window.statusBarColor = color
         window.navigationBarColor = color

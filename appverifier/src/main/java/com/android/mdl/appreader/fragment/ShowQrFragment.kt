@@ -110,7 +110,11 @@ class ShowQrFragment : Fragment() {
                         )
                     )
                 }
-                else -> {}
+
+                else -> {
+                    Log.d(LOG_TAG, "Yanay transferStatus else")
+
+                }
             }
         }
     }

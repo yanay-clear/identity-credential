@@ -609,7 +609,7 @@ public class VerificationHelper {
         transceiverThread.start();
     }
 
-    private void setDeviceEngagement(@NonNull byte[] deviceEngagement, @NonNull DataItem handover) {
+    public void setDeviceEngagement(@NonNull byte[] deviceEngagement, @NonNull DataItem handover) {
         if (mDeviceEngagement != null) {
             throw new IllegalStateException("Device Engagement already set");
         }

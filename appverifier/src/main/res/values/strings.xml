@@ -90,5 +90,7 @@
     <string name="age_over_60">Age over 60?</string>
     <string name="age_over_65">Age over 65?</string>
     <string name="age_over_68">Age pver 68?</string>
+    <string name="nfc_reader_engagement_service_desc">NFC mDoc Reader NFC Engagement</string>
+    <string name="engagement_aid_group_desc">mDL AID Group</string>
 
 </resources>

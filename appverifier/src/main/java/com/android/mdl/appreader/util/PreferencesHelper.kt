@@ -3,6 +3,7 @@ package com.android.mdl.appreader.util
 import android.content.Context
 import androidx.preference.PreferenceManager
 import com.android.identity.Constants
+import java.io.File
 
 object PreferencesHelper {
     private const val BLE_DATA_L2CAP = "ble_l2cap"
@@ -29,5 +30,17 @@ object PreferencesHelper {
     fun getReaderAuth(context: Context): String {
         return PreferenceManager.getDefaultSharedPreferences(context)
             .getString(READER_AUTHENTICATION, "0") ?: "0"
+    }
+
+    fun isDebugLoggingEnabled(): Boolean = true
+    fun isBleDataRetrievalEnabled(context: Context): Boolean = true
+    fun isBleDataRetrievalPeripheralModeEnabled(): Boolean = true
+    fun shouldUseStaticHandover(): Boolean = true
+    fun isHardwareBacked(): Boolean = false
+    fun getKeystoreBackedStorageLocation(context: Context): File {
+        // As per the docs, the credential data contains reference to Keystore aliases so ensure
+        // this is stored in a location where it's not automatically backed up and restored by
+        // Android Backup as per https://developer.android.com/guide/topics/data/autobackup
+        return context.noBackupFilesDir
     }
 }
