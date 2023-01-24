@@ -609,6 +609,10 @@ public class VerificationHelper {
         transceiverThread.start();
     }
 
+    public void setReverseDeviceKey(@NonNull byte[] encodedDeviceKey) {
+        Logger.dCbor(TAG, "Reverse DeviceKey", encodedDeviceKey);
+    }
+
     public void setDeviceEngagement(@NonNull byte[] deviceEngagement, @NonNull DataItem handover) {
         if (mDeviceEngagement != null) {
             throw new IllegalStateException("Device Engagement already set");

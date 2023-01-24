@@ -76,6 +76,9 @@ class TransferFragment : Fragment() {
 
         vm.getTransferStatus().observe(viewLifecycleOwner) {
             when (it) {
+                TransferStatus.CONNECTING -> {
+                    binding.tvStatus.text = "Connecting..."
+                }
                 TransferStatus.ENGAGED -> {
                     binding.tvStatus.text = "Device engagement received..."
                 }

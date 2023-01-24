@@ -212,7 +212,8 @@ class DataTransportBleCentralClientMode extends DataTransportBle {
         mGattServer.setListener(new GattServer.Listener() {
             @Override
             public void onPeerConnected() {
-                reportConnected();
+                reportConnecting();
+                //reportConnected();
                 // No need to advertise anymore since we now have a client...
                 if (mBluetoothLeAdvertiser != null) {
                     Logger.d(TAG, "Stopping advertising UUID " + mServiceUuid);

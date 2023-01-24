@@ -7,13 +7,13 @@ import android.os.Handler
 import android.os.Looper
 import androidx.navigation.NavDeepLinkBuilder
 import com.android.identity.DataTransport
+import com.android.identity.Logger
 import com.android.identity.NfcEngagementHelper
 import com.android.identity.PresentationHelper
 import com.android.identity.PresentationSession
 import com.android.mdl.appreader.MainActivity
 import com.android.mdl.appreader.R
 import com.android.mdl.appreader.document.RequestDocumentList
-import com.android.mdl.appreader.document.RequestMdl
 import com.android.mdl.appreader.document.RequestMdlUsTransportation
 import com.android.mdl.appreader.transfer.Communication
 import com.android.mdl.appreader.transfer.ConnectionSetup
@@ -49,7 +49,6 @@ class NfcReaderEngagementHandler : HostApduService() {
       .createPendingIntent()
     pendingIntent.send(applicationContext, 0, null)
     transferManager.updateStatus(TransferStatus.CONNECTING)
-    log("Engagement Listener: Update Status!!!!")
   }
 
   private val nfcEngagementListener = object : NfcEngagementHelper.Listener {
@@ -59,6 +58,13 @@ class NfcReaderEngagementHandler : HostApduService() {
     }
 
     override fun onDeviceConnected(transport: DataTransport) {
+
+      val data = transport.message
+      if (data == null) {
+       log("onMessageReceived but no message")
+        return
+      }
+
       if (presentation != null) {
         log("Engagement Listener: Device Connected -> ignored due to active presentation")
         return
@@ -80,9 +86,8 @@ class NfcReaderEngagementHandler : HostApduService() {
       presentation = builder.build()
       presentation?.setSendSessionTerminationMessage(true)
       communication.setupPresentation(presentation!!)
-      transferManager.initVerificationHelperWithNFCReverseEngagement(engagementHelper.deviceEngagement, engagementHelper.handover)
+      transferManager.initVerificationHelperWithNFCReverseEngagement(encodedDeviceKey = data)
       transferManager.updateStatus(TransferStatus.CONNECTED)
-
     }
 
     override fun onError(error: Throwable) {
@@ -136,6 +141,7 @@ class NfcReaderEngagementHandler : HostApduService() {
     } else {
       builder.useNegotiatedHandover()
     }
+    builder.useRole(DataTransport.ROLE_MDOC_READER)
     engagementHelper = builder.build()
   }
 

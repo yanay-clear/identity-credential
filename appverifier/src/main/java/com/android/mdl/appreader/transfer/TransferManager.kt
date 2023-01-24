@@ -87,17 +87,15 @@ class TransferManager private constructor(private val context: Context) {
   }
 
   fun initVerificationHelperWithNFCReverseEngagement(
-    deviceEngagement: ByteArray,
-    handover: ByteArray
+    encodedDeviceKey: ByteArray
   ) {
       verification = VerificationHelper.Builder(
       context,
       responseListener,
       context.mainExecutor()
     ).build()
-      val handover: DataItem = SimpleValue.NULL
-      verification?.setDeviceEngagement(deviceEngagement, handover)
       usingReverseEngagement = true
+      verification?.setReverseDeviceKey(encodedDeviceKey)
   }
 
   fun initVerificationHelperReverseEngagement() {

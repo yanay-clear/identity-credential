@@ -42,6 +42,7 @@ public class NfcEngagementHelper {
     // Dynamically created when a NFC tag reader is in the field
     private ArrayList<DataTransport> mTransports;
     private int mNumTransportsStillSettingUp;
+    private @DataTransport.Role int mRole = DataTransport.ROLE_MDOC;
     private byte[] mEncodedDeviceEngagement;
     private byte[] mEncodedHandover;
     private boolean mReportedDeviceConnecting;
@@ -142,7 +143,7 @@ public class NfcEngagementHelper {
         // if both BLE modes are available at the same time.
         List<ConnectionMethod> disambiguatedMethods = ConnectionMethod.disambiguate(connectionMethods);
         for (ConnectionMethod cm : disambiguatedMethods) {
-            DataTransport transport = cm.createDataTransport(mContext, DataTransport.ROLE_MDOC, mOptions);
+            DataTransport transport = cm.createDataTransport(mContext, mRole, mOptions);
             transport.setEDeviceKeyBytes(encodedEDeviceKeyBytes);
             mTransports.add(transport);
             Logger.d(TAG, "Added transport for " + cm);
@@ -199,6 +200,14 @@ public class NfcEngagementHelper {
                     @Override
                     public void onMessageReceived() {
                         Logger.d(TAG, "onMessageReceived for " + transport);
+                        peerHasConnected(transport);
+                        //byte[] data = transport.getMessage();
+                        //if (data == null) {
+                        //    reportError(new Error("onMessageReceived but no message"));
+                        //    return;
+                        //}
+                        //Logger.dCbor(TAG, "onMessageReceived data", data);
+                        //
                     }
 
                     @Override
@@ -735,6 +744,11 @@ public class NfcEngagementHelper {
                     options,
                     listener,
                     executor);
+        }
+
+        public Builder useRole(@DataTransport.Role int role) {
+            mHelper.mRole = role;
+            return this;
         }
 
         public Builder useStaticHandover(@NonNull List<ConnectionMethod> connectionMethods) {
