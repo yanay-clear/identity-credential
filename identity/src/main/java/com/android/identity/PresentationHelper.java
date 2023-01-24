@@ -93,10 +93,20 @@ public class PresentationHelper {
     private byte[] mReverseEngagementReaderEngagement;
     private List<OriginInfo> mReverseEngagementOriginInfos;
     private byte[] mReverseEngagementEncodedEReaderKey;
+    private boolean mReceivedReverseEDeviceKey;
 
     PresentationHelper() {}
 
     // Note: The report*() methods are safe to call from any thread.
+
+    void reportDeviceKey() {
+        Logger.d(TAG, "reportDeviceKey  ");
+        final Listener listener = mListener;
+        final Executor executor = mListenerExecutor;
+        if (!mInhibitCallbacks && listener != null && executor != null) {
+            executor.execute(listener::onDeviceKey);
+        }
+    }
 
     void reportDeviceRequest(@NonNull byte[] deviceRequestBytes) {
         Logger.d(TAG, "reportDeviceRequest: deviceRequestBytes: " + deviceRequestBytes.length + " bytes");
@@ -231,20 +241,22 @@ public class PresentationHelper {
         if (mSessionEncryption != null) {
             return;
         }
-
         // For reverse engagement, we get EReaderKeyBytes via Reverse Engagement...
         byte[] encodedEReaderKey = null;
-        if (mReverseEngagementEncodedEReaderKey != null) {
+        DataItem decodedData = Util.cborDecode(data);
+        if (Util.cborMapHasKey(decodedData, "eDeviceKey")) {
+            // For NFC reverse engagement, we get EDeviceKey via BLE peripheral server
+            encodedEReaderKey = Util.cborMapExtractByteString(decodedData, "eDeviceKey");
+            mReceivedReverseEDeviceKey = true;
+        } else if (mReverseEngagementEncodedEReaderKey != null) {
             encodedEReaderKey = mReverseEngagementEncodedEReaderKey;
             // This is unnecessary but a nice warning regardless...
-            DataItem decodedData = Util.cborDecode(data);
             if (Util.cborMapHasKey(decodedData, "eReaderKey")) {
                 Logger.w(TAG, "Ignoring eReaderKey in SessionEstablishment since we "
                         + "already got this get in ReaderEngagement");
             }
         } else {
             // This is the first message. Extract eReaderKey to set up session encryption...
-            DataItem decodedData = Util.cborDecode(data);
             encodedEReaderKey = Util.cborMapExtractByteString(decodedData, "eReaderKey");
         }
         mEReaderKey = Util.coseKeyDecode(Util.cborDecode(encodedEReaderKey));
@@ -276,7 +288,9 @@ public class PresentationHelper {
 
     private void processMessageReceived(@NonNull byte[] data) {
         Logger.dCbor(TAG, "SessionData received", data);
+
         ensureSessionEncryption(data);
+
         Pair<byte[], OptionalLong> decryptedMessage = null;
         try {
             decryptedMessage = mSessionEncryption.decryptMessageFromReader(data);
@@ -330,6 +344,8 @@ public class PresentationHelper {
             Logger.dCbor(TAG, "DeviceRequest received", decryptedMessage.first);
 
             reportDeviceRequest(decryptedMessage.first);
+        } else if (mReceivedReverseEDeviceKey) {
+            reportDeviceKey();
         } else {
             // No data, so status must be set.
             if (!decryptedMessage.second.isPresent()) {
@@ -514,6 +530,9 @@ public class PresentationHelper {
      * underlying transport encounters an unrecoverable error.
      */
     public interface Listener {
+
+        void onDeviceKey();
+
         /**
          * Called when the remote verifier device sends a request.
          *
@@ -648,6 +667,15 @@ public class PresentationHelper {
             mHelper.mTransport = transport;
             mHelper.mReverseEngagementReaderEngagement = readerEngagement;
             mHelper.mReverseEngagementOriginInfos = originInfos;
+            return this;
+        }
+
+        public @NonNull Builder useNFCReverseEngagement(@NonNull DataTransport transport,
+            @Nullable byte[] readerEngagement,
+            @NonNull byte[] handover) {
+            mHelper.mTransport = transport;
+            mHelper.mReverseEngagementReaderEngagement = readerEngagement;
+            mHelper.mHandover = handover;
             return this;
         }
 

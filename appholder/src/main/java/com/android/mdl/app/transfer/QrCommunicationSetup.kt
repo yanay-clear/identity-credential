@@ -64,6 +64,9 @@ class QrCommunicationSetup(
     }
 
     private val presentationListener = object : PresentationHelper.Listener {
+        override fun onDeviceKey() {
+            log("Presentation Listener: onDeviceKey")
+        }
 
         override fun onDeviceRequest(deviceRequestBytes: ByteArray) {
             log("Presentation Listener (QR): OnDeviceRequest")

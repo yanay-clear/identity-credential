@@ -238,7 +238,7 @@ public abstract class DataTransport {
         final Listener listener = mListener;
         final Executor executor = mListenerExecutor;
         if (!mInhibitCallbacks && listener != null && executor != null) {
-            executor.execute(() -> listener.onMessageReceived());
+            executor.execute(listener::onMessageReceived);
         }
     }
 

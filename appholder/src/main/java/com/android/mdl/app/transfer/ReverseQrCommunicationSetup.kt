@@ -23,6 +23,10 @@ class ReverseQrCommunicationSetup(
     private val connectionSetup = ConnectionSetup(context)
     private val presentationListener = object : PresentationHelper.Listener {
 
+        override fun onDeviceKey() {
+            log("Presentation Listener: onDeviceKey")
+        }
+
         override fun onDeviceRequest(deviceRequestBytes: ByteArray) {
             onNewRequest(deviceRequestBytes)
         }

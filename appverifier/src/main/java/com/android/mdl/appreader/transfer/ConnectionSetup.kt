@@ -22,12 +22,12 @@ class ConnectionSetup(
     fun getConnectionMethods(): List<ConnectionMethod> {
         val connectionMethods = ArrayList<ConnectionMethod>()
         val randomUUID = UUID.randomUUID()
-        if (PreferencesHelper.isBleDataRetrievalEnabled(context)) {
-            connectionMethods.add(ConnectionMethodBle(false, true, null, randomUUID))
-        }
-//        if (PreferencesHelper.isBleDataRetrievalPeripheralModeEnabled()) {
-//            connectionMethods.add(ConnectionMethodBle(true, false, randomUUID, null))
+//        if (PreferencesHelper.isBleDataRetrievalEnabled(context)) {
+//            connectionMethods.add(ConnectionMethodBle(false, true, null, randomUUID))
 //        }
+        if (PreferencesHelper.isBleDataRetrievalPeripheralModeEnabled()) {
+            connectionMethods.add(ConnectionMethodBle(true, false, randomUUID, null))
+        }
         return connectionMethods
     }
 }

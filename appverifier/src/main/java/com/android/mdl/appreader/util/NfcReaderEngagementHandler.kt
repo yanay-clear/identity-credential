@@ -64,8 +64,7 @@ class NfcReaderEngagementHandler : HostApduService() {
         return
       }
 
-      log("Engagement Listener: Device Connected via NFC")
-
+      log("Engagement Listener: Device Connected via NfcReaderEngagementHandler")
       val builder = PresentationHelper.Builder(
         applicationContext,
         presentationListener,
@@ -83,6 +82,7 @@ class NfcReaderEngagementHandler : HostApduService() {
       communication.setupPresentation(presentation!!)
       transferManager.initVerificationHelperWithNFCReverseEngagement(engagementHelper.deviceEngagement, engagementHelper.handover)
       transferManager.updateStatus(TransferStatus.CONNECTED)
+
     }
 
     override fun onError(error: Throwable) {
@@ -94,6 +94,9 @@ class NfcReaderEngagementHandler : HostApduService() {
 
 
   private val presentationListener = object : PresentationHelper.Listener {
+    override fun onDeviceKey() {
+      log("Presentation Listener: onDeviceKey")
+    }
 
     override fun onDeviceRequest(deviceRequestBytes: ByteArray) {
       log("Presentation Listener: OnDeviceRequest")
