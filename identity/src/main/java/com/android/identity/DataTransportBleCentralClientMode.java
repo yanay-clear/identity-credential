@@ -198,6 +198,7 @@ class DataTransportBleCentralClientMode extends DataTransportBle {
         }
     }
 
+
     private void connectAsMdocReader() {
         BluetoothManager bluetoothManager = mContext.getSystemService(BluetoothManager.class);
         UUID characteristicL2CAPUuid = null;

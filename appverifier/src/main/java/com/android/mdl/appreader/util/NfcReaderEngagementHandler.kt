@@ -7,7 +7,6 @@ import android.os.Handler
 import android.os.Looper
 import androidx.navigation.NavDeepLinkBuilder
 import com.android.identity.DataTransport
-import com.android.identity.Logger
 import com.android.identity.NfcEngagementHelper
 import com.android.identity.PresentationHelper
 import com.android.identity.PresentationSession
@@ -82,17 +81,24 @@ class NfcReaderEngagementHandler : HostApduService() {
         engagementHelper.deviceEngagement,
         engagementHelper.handover
       )
-
       presentation = builder.build()
+
       presentation?.setSendSessionTerminationMessage(true)
+
       communication.setupPresentation(presentation!!)
-      transferManager.initVerificationHelperWithNFCReverseEngagement(encodedDeviceKey = data)
+      presentation?.setReverseReaderKey(session.ephemeralKeyPair, data)
+
+      transferManager.initVerificationHelperWithNFCReverseEngagement(
+        transport = transport,
+        encodedDeviceKey = data,
+        ephemeralKeyPair = session.ephemeralKeyPair
+      )
       transferManager.updateStatus(TransferStatus.CONNECTED)
     }
 
     override fun onError(error: Throwable) {
       log("Engagement Listener: onError -> ${error.message}")
-//      transferManager.updateStatus(TransferStatus.ERROR)
+      transferManager.updateStatus(TransferStatus.ERROR)
       engagementHelper.close()
     }
   }

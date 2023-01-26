@@ -17,17 +17,17 @@
 package com.android.identity;
 
 import android.content.Context;
-import android.nfc.cardemulation.HostApduService;
 
 import androidx.core.util.Pair;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import co.nstant.in.cbor.model.SimpleValue;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.PublicKey;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.OptionalLong;
 import java.util.concurrent.Executor;
@@ -93,20 +93,11 @@ public class PresentationHelper {
     private byte[] mReverseEngagementReaderEngagement;
     private List<OriginInfo> mReverseEngagementOriginInfos;
     private byte[] mReverseEngagementEncodedEReaderKey;
-    private boolean mReceivedReverseEDeviceKey;
+    private PublicKey mReverseEngagementEncodedEDeviceKey;
 
     PresentationHelper() {}
 
     // Note: The report*() methods are safe to call from any thread.
-
-    void reportDeviceKey() {
-        Logger.d(TAG, "reportDeviceKey  ");
-        final Listener listener = mListener;
-        final Executor executor = mListenerExecutor;
-        if (!mInhibitCallbacks && listener != null && executor != null) {
-            executor.execute(listener::onDeviceKey);
-        }
-    }
 
     void reportDeviceRequest(@NonNull byte[] deviceRequestBytes) {
         Logger.d(TAG, "reportDeviceRequest: deviceRequestBytes: " + deviceRequestBytes.length + " bytes");
@@ -247,7 +238,7 @@ public class PresentationHelper {
         if (Util.cborMapHasKey(decodedData, "eDeviceKey")) {
             // For NFC reverse engagement, we get EDeviceKey via BLE peripheral server
             encodedEReaderKey = Util.cborMapExtractByteString(decodedData, "eDeviceKey");
-            mReceivedReverseEDeviceKey = true;
+
         } else if (mReverseEngagementEncodedEReaderKey != null) {
             encodedEReaderKey = mReverseEngagementEncodedEReaderKey;
             // This is unnecessary but a nice warning regardless...
@@ -255,6 +246,8 @@ public class PresentationHelper {
                 Logger.w(TAG, "Ignoring eReaderKey in SessionEstablishment since we "
                         + "already got this get in ReaderEngagement");
             }
+            mEReaderKey = mReverseEngagementEncodedEDeviceKey;
+            Logger.dCbor("yanay", "mEReaderKey", mEReaderKey.getEncoded());
         } else {
             // This is the first message. Extract eReaderKey to set up session encryption...
             encodedEReaderKey = Util.cborMapExtractByteString(decodedData, "eReaderKey");
@@ -268,6 +261,7 @@ public class PresentationHelper {
                 .add(Util.cborDecode(mHandover))
                 .end()
                 .build().get(0));
+
         mSessionEncryption = new SessionEncryptionDevice(mEphemeralKeyPair.getPrivate(),
                 mEReaderKey,
                 mEncodedSessionTranscript);
@@ -344,8 +338,6 @@ public class PresentationHelper {
             Logger.dCbor(TAG, "DeviceRequest received", decryptedMessage.first);
 
             reportDeviceRequest(decryptedMessage.first);
-        } else if (mReceivedReverseEDeviceKey) {
-            reportDeviceKey();
         } else {
             // No data, so status must be set.
             if (!decryptedMessage.second.isPresent()) {
@@ -520,6 +512,24 @@ public class PresentationHelper {
     public void setSendSessionTerminationMessage(
             boolean sendSessionTerminationMessage) {
         mSendSessionTerminationMessage = sendSessionTerminationMessage;
+    }
+
+    public void setReverseReaderKey(
+        final KeyPair ephemeralKeyPair,
+        final byte[] data) {
+        // the eDeviceKey is the eReaderKey since we are in a reverseEngagement
+        mReverseEngagementEncodedEReaderKey = Util.cborEncode(Util.cborBuildCoseKey(ephemeralKeyPair.getPublic()));
+        mHandover = Util.cborEncode(SimpleValue.NULL);
+
+        final DataItem dataItem = Util.cborDecode(data);
+        final byte[] encodedDeviceKey = Util.cborMapExtractByteString(dataItem, "eDeviceKey");
+        final PublicKey eDeviceKey = Util.coseKeyDecode(Util.cborDecode(encodedDeviceKey));
+        mReverseEngagementEncodedEDeviceKey = eDeviceKey;
+        EngagementGenerator engagementGenerator =
+            new EngagementGenerator(eDeviceKey,
+                EngagementGenerator.ENGAGEMENT_VERSION_1_0);
+        engagementGenerator.setConnectionMethods(Collections.emptyList());
+        mDeviceEngagement = engagementGenerator.generate();
     }
 
     /**

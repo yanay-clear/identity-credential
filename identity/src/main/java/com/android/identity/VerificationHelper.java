@@ -38,6 +38,7 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.OptionalLong;
@@ -609,8 +610,49 @@ public class VerificationHelper {
         transceiverThread.start();
     }
 
-    public void setReverseDeviceKey(@NonNull byte[] encodedDeviceKey) {
-        Logger.dCbor(TAG, "Reverse DeviceKey", encodedDeviceKey);
+    public void setReverseDeviceKey(
+        @NonNull byte[] encodedDeviceKeyBytes,
+        final DataTransport transport,
+        KeyPair ephemeralKeyPair) {
+        Logger.dCbor(TAG, "Reverse DeviceKey", encodedDeviceKeyBytes);
+        mEphemeralKeyPair = ephemeralKeyPair;
+        mDataTransport = transport;
+        DataItem cbor = Util.cborDecode(encodedDeviceKeyBytes);
+
+        if (!Util.cborMapHasKey(cbor, "eDeviceKey")) {
+            throw new IllegalStateException("Nfc reverse engagement expected to receive eDeviceKey");
+        }
+
+        // the eDeviceKey is the eReaderKey since we are in a reverseEngagement
+        final byte[] encodedDeviceKey = Util.cborMapExtractByteString(cbor, "eDeviceKey");
+        final PublicKey eDeviceKey = Util.coseKeyDecode(Util.cborDecode(encodedDeviceKey));
+
+        EngagementGenerator engagementGenerator =
+            new EngagementGenerator(eDeviceKey,
+                EngagementGenerator.ENGAGEMENT_VERSION_1_0);
+        engagementGenerator.setConnectionMethods(Collections.emptyList());
+        mDeviceEngagement = engagementGenerator.generate();
+
+        byte[] encodedEReaderKeyPub = Util.cborEncode(Util.cborBuildCoseKey(mEphemeralKeyPair.getPublic()));
+
+        mEncodedSessionTranscript = Util.cborEncode(new CborBuilder()
+            .addArray()
+            .add(Util.cborBuildTaggedByteString(mDeviceEngagement))
+            .add(Util.cborBuildTaggedByteString(encodedEReaderKeyPub))
+            .add(SimpleValue.NULL)
+            .end()
+            .build().get(0));
+
+        Logger.dCbor(TAG, "mEncodedSessionTranscript", mEncodedSessionTranscript);
+
+        mSessionEncryptionReader = new SessionEncryptionReader(
+            mEphemeralKeyPair.getPrivate(),
+            mEphemeralKeyPair.getPublic(),
+            eDeviceKey,
+            mEncodedSessionTranscript);
+
+        // No need to include EReaderKey in first message...
+        mSessionEncryptionReader.setSendSessionEstablishment(false);
     }
 
     public void setDeviceEngagement(@NonNull byte[] deviceEngagement, @NonNull DataItem handover) {

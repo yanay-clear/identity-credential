@@ -9,10 +9,9 @@ import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import co.nstant.`in`.cbor.model.DataItem
-import co.nstant.`in`.cbor.model.SimpleValue
 import com.android.identity.ConnectionMethod
 import com.android.identity.ConnectionMethodBle
+import com.android.identity.DataTransport
 import com.android.identity.DataTransportOptions
 import com.android.identity.DeviceRequestGenerator
 import com.android.identity.DeviceResponseParser
@@ -26,6 +25,7 @@ import com.android.mdl.appreader.util.PreferencesHelper
 import com.android.mdl.appreader.util.TransferStatus
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import java.security.KeyFactory
+import java.security.KeyPair
 import java.security.PrivateKey
 import java.security.Signature
 import java.security.cert.X509Certificate
@@ -87,7 +87,9 @@ class TransferManager private constructor(private val context: Context) {
   }
 
   fun initVerificationHelperWithNFCReverseEngagement(
-    encodedDeviceKey: ByteArray
+    transport: DataTransport,
+    encodedDeviceKey: ByteArray,
+    ephemeralKeyPair: KeyPair
   ) {
       verification = VerificationHelper.Builder(
       context,
@@ -95,7 +97,7 @@ class TransferManager private constructor(private val context: Context) {
       context.mainExecutor()
     ).build()
       usingReverseEngagement = true
-      verification?.setReverseDeviceKey(encodedDeviceKey)
+      verification?.setReverseDeviceKey(encodedDeviceKey, transport, ephemeralKeyPair)
   }
 
   fun initVerificationHelperReverseEngagement() {

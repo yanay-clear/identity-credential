@@ -95,6 +95,9 @@ final class SessionEncryptionDevice {
                     Util.cborBuildTaggedByteString(encodedSessionTranscript));
             byte[] salt = MessageDigest.getInstance("SHA-256").digest(sessionTranscriptBytes);
 
+            Logger.dCbor("SessionEncryptionDevice", "yanay SessionEncryptionDevice sessionTranscriptBytes: ", sessionTranscriptBytes);
+            Logger.d("SessionEncryptionDevice", "yanay SessionEncryptionDevice device " + Util.toHex(salt));
+
             byte[] info = "SKDevice".getBytes(UTF_8);
             byte[] derivedKey = Util.computeHkdf("HmacSha256", sharedSecret, salt, info, 32);
 
@@ -103,6 +106,9 @@ final class SessionEncryptionDevice {
             info = "SKReader".getBytes(UTF_8);
             derivedKey = Util.computeHkdf("HmacSha256", sharedSecret, salt, info, 32);
             mSKReader = new SecretKeySpec(derivedKey, "AES");
+
+            Logger.d("SessionEncryptionDevice", "yanay SKReader derivedKey " + Util.toHex(derivedKey));
+
         } catch (NoSuchAlgorithmException | InvalidKeyException e) {
             throw new IllegalStateException("Error deriving keys", e);
         }

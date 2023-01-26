@@ -81,7 +81,8 @@ final class SessionEncryptionReader {
      * @param eDeviceKeyPublic the device public key.
      * @param encodedSessionTranscript the bytes of the <code>SessionTranscript</code> CBOR.
      */
-    public SessionEncryptionReader(@NonNull PrivateKey eReaderKeyPrivate,
+    public SessionEncryptionReader(
+            @NonNull PrivateKey eReaderKeyPrivate,
             @NonNull PublicKey eReaderKeyPublic,
             @NonNull PublicKey eDeviceKeyPublic,
             @NonNull byte[] encodedSessionTranscript) {
@@ -101,6 +102,9 @@ final class SessionEncryptionReader {
 
             byte[] info = "SKDevice".getBytes(UTF_8);
             byte[] derivedKey = Util.computeHkdf("HmacSha256", sharedSecret, salt, info, 32);
+
+            Logger.dCbor("SessionEncryptionReader", "yanay SessionEncryptionReader sessionTranscriptBytes: ", sessionTranscriptBytes);
+            Logger.d("SessionEncryptionReader", "yanay SessionEncryptionReader salt: " + Util.toHex(salt));
 
             mSKDevice = new SecretKeySpec(derivedKey, "AES");
 
