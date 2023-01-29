@@ -57,7 +57,7 @@ import co.nstant.in.cbor.model.UnicodeString;
  * A helper class for encrypting and decrypting messages exchanged with a remote
  * mDL prover, conforming to ISO 18013-5 9.1.1 Session encryption.
  */
-final class SessionEncryptionReader {
+final public class SessionEncryptionReader {
 
     private static final String TAG = "SessionEncryptionReader";
 
@@ -95,7 +95,7 @@ final class SessionEncryptionReader {
             ka.init(mEReaderKeyPrivate);
             ka.doPhase(mEDeviceKeyPublic, true);
             byte[] sharedSecret = ka.generateSecret();
-
+            Logger.d("SessionEncryptionReader", "yanay sharedSecret: " + Util.toHex(sharedSecret));
             byte[] sessionTranscriptBytes = Util.cborEncode(
                     Util.cborBuildTaggedByteString(encodedSessionTranscript));
             byte[] salt = MessageDigest.getInstance("SHA-256").digest(sessionTranscriptBytes);
@@ -105,7 +105,7 @@ final class SessionEncryptionReader {
 
             Logger.dCbor("SessionEncryptionReader", "yanay SessionEncryptionReader sessionTranscriptBytes: ", sessionTranscriptBytes);
             Logger.d("SessionEncryptionReader", "yanay SessionEncryptionReader salt: " + Util.toHex(salt));
-
+            Logger.d("SessionEncryptionReader", "yanay derivedKey: " + Util.toHex(derivedKey));
             mSKDevice = new SecretKeySpec(derivedKey, "AES");
 
             info = "SKReader".getBytes(UTF_8);
@@ -114,6 +114,10 @@ final class SessionEncryptionReader {
         } catch (NoSuchAlgorithmException | InvalidKeyException e) {
             throw new IllegalStateException("Error deriving keys", e);
         }
+    }
+
+    public void increaseMessages() {
+        mSKDeviceCounter += 1;
     }
 
     /**

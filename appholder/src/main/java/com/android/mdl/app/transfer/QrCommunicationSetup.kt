@@ -68,7 +68,7 @@ class QrCommunicationSetup(
             log("Presentation Listener: onDeviceKey")
         }
 
-        override fun onDeviceRequest(deviceRequestBytes: ByteArray) {
+        override fun onDeviceResponse(deviceRequestBytes: ByteArray) {
             log("Presentation Listener (QR): OnDeviceRequest")
             onNewDeviceRequest(deviceRequestBytes)
         }

@@ -610,7 +610,7 @@ public class VerificationHelper {
         transceiverThread.start();
     }
 
-    public void setReverseDeviceKey(
+    public SessionEncryptionReader setReverseDeviceKey(
         @NonNull byte[] encodedDeviceKeyBytes,
         final DataTransport transport,
         KeyPair ephemeralKeyPair) {
@@ -653,6 +653,8 @@ public class VerificationHelper {
 
         // No need to include EReaderKey in first message...
         mSessionEncryptionReader.setSendSessionEstablishment(false);
+
+        return mSessionEncryptionReader;
     }
 
     public void setDeviceEngagement(@NonNull byte[] deviceEngagement, @NonNull DataItem handover) {

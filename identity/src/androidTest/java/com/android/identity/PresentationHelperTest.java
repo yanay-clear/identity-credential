@@ -292,7 +292,7 @@ public class PresentationHelperTest {
                 new PresentationHelper.Listener() {
 
                     @Override
-                    public void onDeviceRequest(@NonNull byte[] deviceRequestBytes) {
+                    public void onDeviceResponse(@NonNull byte[] deviceRequestBytes) {
                         DeviceRequestParser parser = new DeviceRequestParser();
                         parser.setDeviceRequest(deviceRequestBytes);
                         parser.setSessionTranscript(presentation[0].getSessionTranscript());
@@ -542,7 +542,7 @@ public class PresentationHelperTest {
                 new PresentationHelper.Listener() {
 
                     @Override
-                    public void onDeviceRequest(@NonNull byte[] deviceRequestBytes) {
+                    public void onDeviceResponse(@NonNull byte[] deviceRequestBytes) {
                         Assert.fail("Should not be reached");
                     }
 
@@ -695,7 +695,7 @@ public class PresentationHelperTest {
         PresentationHelper.Listener listener =
                 new PresentationHelper.Listener() {
                     @Override
-                    public void onDeviceRequest(@NonNull byte[] deviceRequestBytes) {
+                    public void onDeviceResponse(@NonNull byte[] deviceRequestBytes) {
                         // Don't respond yet.. simulate the holder taking infinity to respond.
                         // instead, we'll simply wait for the verifier to disconnect instead.
                         condVarDeviceRequestReceived.open();

@@ -100,7 +100,7 @@ class NfcEngagementHandler : HostApduService() {
             log("Presentation Listener: onDeviceKey")
         }
 
-        override fun onDeviceRequest(deviceRequestBytes: ByteArray) {
+        override fun onDeviceResponse(deviceRequestBytes: ByteArray) {
             log("Presentation Listener: OnDeviceRequest")
             communication.setDeviceRequest(deviceRequestBytes)
             transferManager.updateStatus(TransferStatus.REQUEST)

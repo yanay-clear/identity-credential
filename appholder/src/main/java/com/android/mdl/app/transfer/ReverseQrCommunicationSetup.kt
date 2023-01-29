@@ -27,7 +27,7 @@ class ReverseQrCommunicationSetup(
             log("Presentation Listener: onDeviceKey")
         }
 
-        override fun onDeviceRequest(deviceRequestBytes: ByteArray) {
+        override fun onDeviceResponse(deviceRequestBytes: ByteArray) {
             onNewRequest(deviceRequestBytes)
         }
 

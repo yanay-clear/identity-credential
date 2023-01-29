@@ -88,11 +88,12 @@ class NfcReaderEngagementHandler : HostApduService() {
       communication.setupPresentation(presentation!!)
       presentation?.setReverseReaderKey(session.ephemeralKeyPair, data)
 
-      transferManager.initVerificationHelperWithNFCReverseEngagement(
+      val sessionEncryptionReader = transferManager.initVerificationHelperWithNFCReverseEngagement(
         transport = transport,
         encodedDeviceKey = data,
         ephemeralKeyPair = session.ephemeralKeyPair
       )
+      presentation?.setSessionEnryptionReader(sessionEncryptionReader)
       transferManager.updateStatus(TransferStatus.CONNECTED)
     }
 
@@ -109,10 +110,10 @@ class NfcReaderEngagementHandler : HostApduService() {
       log("Presentation Listener: onDeviceKey")
     }
 
-    override fun onDeviceRequest(deviceRequestBytes: ByteArray) {
+    override fun onDeviceResponse(deviceRequestBytes: ByteArray) {
       log("Presentation Listener: OnDeviceRequest")
-      communication.setDeviceRequest(deviceRequestBytes)
-      transferManager.updateStatus(TransferStatus.REQUEST)
+
+      transferManager.setDeviceResponse(deviceRequestBytes)
     }
 
     override fun onDeviceDisconnected(transportSpecificTermination: Boolean) {

@@ -16,6 +16,7 @@ import com.android.identity.DataTransportOptions
 import com.android.identity.DeviceRequestGenerator
 import com.android.identity.DeviceResponseParser
 import com.android.identity.PresentationSession
+import com.android.identity.SessionEncryptionReader
 import com.android.identity.VerificationHelper
 import com.android.mdl.appreader.document.RequestDocumentList
 import com.android.mdl.appreader.readercertgen.ReaderCertificateGenerator
@@ -90,14 +91,16 @@ class TransferManager private constructor(private val context: Context) {
     transport: DataTransport,
     encodedDeviceKey: ByteArray,
     ephemeralKeyPair: KeyPair
-  ) {
+  ): SessionEncryptionReader {
       verification = VerificationHelper.Builder(
       context,
       responseListener,
       context.mainExecutor()
     ).build()
       usingReverseEngagement = true
+    var sessionEncryptionReader =
       verification?.setReverseDeviceKey(encodedDeviceKey, transport, ephemeralKeyPair)
+    return sessionEncryptionReader!!
   }
 
   fun initVerificationHelperReverseEngagement() {
@@ -199,6 +202,7 @@ class TransferManager private constructor(private val context: Context) {
     responseBytes = null
     verification = null
   }
+
 
   private val responseListener = object : VerificationHelper.Listener {
     override fun onReaderEngagementReady(readerEngagement: ByteArray) {
@@ -367,5 +371,10 @@ class TransferManager private constructor(private val context: Context) {
   fun setCommunication(session: PresentationSession, communication: Communication) {
     this.session = session
     this.communication = communication
+  }
+
+  fun setDeviceResponse(deviceRequestBytes: ByteArray) {
+    responseBytes = deviceRequestBytes
+    transferStatusLd.value = TransferStatus.RESPONSE
   }
 }

@@ -36,6 +36,7 @@ import co.nstant.in.cbor.CborBuilder;
 import co.nstant.in.cbor.builder.MapBuilder;
 import co.nstant.in.cbor.model.DataItem;
 import co.nstant.in.cbor.model.UnicodeString;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Helper used for establishing engagement with, interacting with, and presenting credentials to a
@@ -94,17 +95,23 @@ public class PresentationHelper {
     private List<OriginInfo> mReverseEngagementOriginInfos;
     private byte[] mReverseEngagementEncodedEReaderKey;
     private PublicKey mReverseEngagementEncodedEDeviceKey;
+    private SessionEncryptionReader mYanaySessionEncryption
+        ;
 
     PresentationHelper() {}
 
+    public void setSessionEnryptionReader(@NotNull final SessionEncryptionReader sessionEncryptionReader) {
+        mYanaySessionEncryption = sessionEncryptionReader;
+    }
+
     // Note: The report*() methods are safe to call from any thread.
 
-    void reportDeviceRequest(@NonNull byte[] deviceRequestBytes) {
+    void reportDeviceResponse(@NonNull byte[] deviceRequestBytes) {
         Logger.d(TAG, "reportDeviceRequest: deviceRequestBytes: " + deviceRequestBytes.length + " bytes");
         final Listener listener = mListener;
         final Executor executor = mListenerExecutor;
         if (!mInhibitCallbacks && listener != null && executor != null) {
-            executor.execute(() -> listener.onDeviceRequest(deviceRequestBytes));
+            executor.execute(() -> listener.onDeviceResponse(deviceRequestBytes));
         }
     }
 
@@ -287,7 +294,7 @@ public class PresentationHelper {
 
         Pair<byte[], OptionalLong> decryptedMessage = null;
         try {
-            decryptedMessage = mSessionEncryption.decryptMessageFromReader(data);
+            decryptedMessage = mYanaySessionEncryption.decryptMessageFromDevice(data);
         } catch (RuntimeException e) {
             mTransport.sendMessage(mSessionEncryption.encryptMessageToReader(
                     null, OptionalLong.of(Constants.SESSION_DATA_STATUS_ERROR_SESSION_ENCRYPTION)));
@@ -337,7 +344,7 @@ public class PresentationHelper {
 
             Logger.dCbor(TAG, "DeviceRequest received", decryptedMessage.first);
 
-            reportDeviceRequest(decryptedMessage.first);
+            reportDeviceResponse(decryptedMessage.first);
         } else {
             // No data, so status must be set.
             if (!decryptedMessage.second.isPresent()) {
@@ -387,7 +394,7 @@ public class PresentationHelper {
     /**
      * Send a response to the remote mdoc verifier.
      *
-     * <p>This is typically called in response to the {@link Listener#onDeviceRequest(byte[])}
+     * <p>This is typically called in response to the {@link Listener#onDeviceResponse(byte[])}
      * callback.
      *
      * <p>The <code>deviceResponseBytes</code> parameter should contain CBOR conforming to
@@ -404,7 +411,7 @@ public class PresentationHelper {
     /**
      * Send a response to the remote mdoc verifier.
      *
-     * <p>This is typically called in response to the {@link Listener#onDeviceRequest(byte[])}
+     * <p>This is typically called in response to the {@link Listener#onDeviceResponse(byte[])}
      * callback.
      *
      * <p>The <code>deviceResponseBytes</code> parameter should contain CBOR conforming to
@@ -557,7 +564,7 @@ public class PresentationHelper {
          *
          * @param deviceRequestBytes     the device request.
          */
-        void onDeviceRequest(@NonNull byte[] deviceRequestBytes);
+        void onDeviceResponse(@NonNull byte[] deviceRequestBytes);
 
         /**
          * Called when the remote verifier device disconnects normally, that is
